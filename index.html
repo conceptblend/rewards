@@ -144,6 +144,12 @@
                 increment = amount / steps,
                 interval;
 
+            window.scrollTo({
+                top: 0,
+                left: 0,
+                behavior: 'smooth'
+            });
+
             /* Reveal the feedback content */
             $('#rewards-phrase').css('opacity', 1);
 
