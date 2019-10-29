@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Rewards calculator</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style type="text/css">
+        body {
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        /*
+        #amount {
+            max-width: 8rem;
+        }
+        */
+        #rewards-phrase {
+            text-align: center;
+            opacity: 0.1;
+            margin-top: .5rem;
+            transition: opacity 200ms ease-out;
+        }
+        #rewards-container {
+            display: inline-block;
+            position: relative;
+        }
+        #rewards {
+            display: inline-block;;
+            padding: 0 .25rem;
+            position: relative;
+            z-index: 2;
+        }
+        #rewards-bg {
+            position: absolute;
+            display: block;
+            bottom: 0;
+            left: 0%;
+            background-color: rgba(255, 235, 59, 0.65);
+            height: 100%;
+            width: 0;
+            top: 0;
+            z-index: 1;
+            transition: width 100ms linear;
+        }
+
+        #method {
+            margin-top: 600px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+        <div class="row">
+            <div class="col-12 col-md-8 offset-md-2 col-lg-6 offset-lg-3">
+                <p class="lead" id="rewards-phrase">
+                    You'd earn <span id="rewards-container"><span id="rewards-bg"></span><strong id="rewards"></strong></span>&nbsp;<span class="rewards-type"></span>!
+                </p>
+                <hr />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12 col-md-8 offset-md-2 col-lg-6 offset-lg-3">
+                <label for="amount">How much do you think you spend each month?</label>
+                <form class="form">
+                    <div class="form-group mr-1">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">$</span>
+                            </div>
+                            <input type="number" step="1" class="form-control" id="amount"
+                                aria-describedby="How much do you think you spend each month?" placeholder="Enter amount...">
+                        </div>
+                    </div>
+                    <div class="form-group"> <button id="calculate" class="btn btn-block btn-outline btn-primary disabled" disabled type="submit">Calculate my&nbsp;<span class="rewards-type"></span></button>
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-md-8 offset-md-2 col-lg-6 offset-lg-3">
+                    <div id="method" class="btn-group btn-group-toggle btn-group-sm" data-toggle="buttons">
+                            <label class="btn btn-outline-success">
+                                <input type="radio" name="options" id="option1" value="rewardsTypeEnum.cashback" autocomplete="off" checked>Cash back
+                            </label>
+                            <label class="btn btn-outline-success active">
+                                <input type="radio" name="options" id="option2" value="rewardsTypeEnum.points" autocomplete="off">Points
+                            </label>
+                    </div>
+        
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous">
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
+    </script>
+    <script>
+        var rewardsPercentage = 0.5,
+            rewardsTypeEnum = {
+                cashback: 1,
+                points: 2
+            },
+            rewardsType = rewardsTypeEnum.points;
+
+        function formatDollarAmount(amount) {
+            return amount.toLocaleString('en-CA', { style: 'currency', currency: 'CAD' });
+        }
+        function formatPointsAmount(amount) {
+            return Math.round(amount).toLocaleString('en-CA');
+        }
+        function insertRewardsTypeLabels(type) {
+            switch (type) {
+                case rewardsTypeEnum.cashback:
+                    $('.rewards-type').text('cash back');
+                    break;
+                case rewardsTypeEnum.points:
+                    $('.rewards-type').text('points');
+                    break;
+                default:
+                    $('.rewards-type').text('');
+            }
+            $('#rewards').text('_____');
+        }
+        function revealRewardsEarned(amount, fnFormat) {
+            var el = $('#rewards'),
+                steps = 24,
+                amt = 0,
+                increment = amount / steps,
+                interval;
+
+            /* Reveal the feedback content */
+            $('#rewards-phrase').css('opacity', 1);
+
+            /* Animate in the value that's been calculated */
+            interval = setInterval(function(i) {
+                    amt += increment;
+                    if (amt < amount) {
+                        el.text(fnFormat.call(this, amt));
+                        $('#rewards-bg').width(amt/amount * el.width());
+                    } else {
+                        clearInterval(interval);
+                        /* Just in case, we're gonna make sure the last value is exactly the amount */
+                        el.text(fnFormat.call(this, amount));
+                        $('#rewards-bg').width('100%');
+                    }
+                }
+                , 50);
+       
+        }
+        $(function() {
+            /* Add the label for the rewards type */
+            insertRewardsTypeLabels(rewardsType);
+
+            $('#calculate')
+                .click(function(e) {
+                    var amount = $('#amount').val() || 0,
+                        earnedRewards;
+                    
+                    switch (rewardsType) {
+                        case rewardsTypeEnum.cashback:
+                            earnedRewards = amount * rewardsPercentage / 100;
+                            revealRewardsEarned(earnedRewards, formatDollarAmount);
+                            break;
+                        case rewardsTypeEnum.points:
+                            earnedRewards = amount * rewardsPercentage;
+                            revealRewardsEarned(earnedRewards, formatPointsAmount);
+                            break;
+                        default:
+                            break;
+                    }
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            /*
+                Manage the enabled / disabled state of the calculation button based on having
+                a value in the input field
+            */
+            $('#amount')
+                .keyup(function(e) {
+                    var amount = $('#amount').val() || 0,
+                        el = $('#calculate');
+                    if (amount > 0) {
+                        el
+                            .removeAttr('disabled')
+                            .removeClass('disabled');
+                    } else {
+                        el
+                            .attr('disabled', true)
+                            .addClass('disabled');
+                    }
+                });
+            
+            $('#method .btn')
+                .change(function(e) {
+                    rewardsType = eval($('#method input[type=radio]:checked').val());
+                    insertRewardsTypeLabels(rewardsType);
+                    $('#calculate').click();
+                })
+        });
+    </script>
+</body>
+
+</html>
