@@ -1,0 +1,2 @@
+# rewards
+Rewards calculator example
